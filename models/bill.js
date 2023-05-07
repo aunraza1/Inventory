@@ -6,11 +6,7 @@ const billSchema = new mongoose.Schema(
     products: [
       {
         id: mongoose.Types.ObjectId,
-        name: {
-          type: String,
-        },
         price: {
-          required: true,
           min: 1,
           max: 10000,
           type: Number,
@@ -21,44 +17,40 @@ const billSchema = new mongoose.Schema(
       },
     ],
     amount: {
-      default: Number,
+      type: Number,
     },
     type: {
-      required: true,
       enum: ["credit", "cash"],
       default: String,
     },
     customer: {
-      required: true,
-      type: function () {
-        if (this.type === "credit") {
-          this.customer.ref = "User";
-        }
-        return this.type === "credit" ? mongoose.Types.ObjectId : String;
-      },
+      ref: "User",
+      type: mongoose.Types.ObjectId,
     },
     balance: {
       type: Number,
       default: 0,
     },
   },
-  { timeseries: true }
+  { timestamps: true }
 );
-const validateBill = () => {
+
+const validateBill = (bill) => {
   const schema = Joi.object({
-    products: Joi.array().items(
-      Joi.object({
-        id: Joi.ObjectId().required(),
-        name: Joi.string().required(),
-        price: Joi.number().required(),
-        quantity: Joi.number().min(1).required(),
-      })
-    ),
+    products: Joi.array()
+      .items(
+        Joi.object({
+          id: Joi.objectId().required(),
+          price: Joi.number().min(1).required(),
+          quantity: Joi.number().min(1).required(),
+        })
+      )
+      .required(),
     amount: Joi.number().min(1),
     type: Joi.string().valid("credit", "cash").required(),
     balance: Joi.number().min(0),
   });
-  return schema.validate(product);
+  return schema.validate(bill);
 };
 const Billschema = mongoose.model("billSchema", billSchema);
 module.exports = {
