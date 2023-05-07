@@ -39,12 +39,6 @@ const productSchema = new mongoose.Schema(
       min: 0,
       max: 100000,
     },
-    availableQuantity: {
-      type: Number,
-      default: function () {
-        return this.quantity;
-      },
-    },
     addedBy: {
       required: true,
       ref: "User",

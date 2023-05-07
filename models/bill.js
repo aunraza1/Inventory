@@ -52,7 +52,7 @@ const validateBill = (bill) => {
   });
   return schema.validate(bill);
 };
-const Billschema = mongoose.model("billSchema", billSchema);
+const Billschema = mongoose.model("Bills", billSchema);
 module.exports = {
   Billschema,
   validateBill,

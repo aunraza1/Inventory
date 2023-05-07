@@ -27,7 +27,7 @@ const addNewProduct = async (req, res) => {
     await product.save();
     return res
       .status(200)
-      .send({ product, message: "Product Add Successfully!" });
+      .send({ product, message: "Product Added Successfully!" });
   } catch (e) {
     return res.status(500).send({ message: "Something Went Wrong!", error: e });
   }
@@ -45,7 +45,7 @@ const updateProduct = async (req, res) => {
       return res.status(400).send({ message: "Product not found!" });
     }
     body = returnRequestObj(Product, body);
-    const keysToExclude = ["availableQuantity", "addedBy"];
+    const keysToExclude = ["addedBy"];
     let userAddedKey;
     let updateObj = {};
     for (let key in body) {
@@ -59,8 +59,6 @@ const updateProduct = async (req, res) => {
       updateObj.quantity = product?.quantity
         ? parseInt(body.quantity) + product.quantity
         : parseInt(body.quantity);
-      updateObj.availableQuantity =
-        product?.availableQuantity + parseInt(body.quantity);
     }
     if (userAddedKey) {
       return res
