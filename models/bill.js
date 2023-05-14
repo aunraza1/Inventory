@@ -12,7 +12,7 @@ const billSchema = new mongoose.Schema(
           type: Number,
         },
         quantity: {
-          default: Number,
+          type: Number,
         },
       },
     ],
@@ -27,12 +27,15 @@ const billSchema = new mongoose.Schema(
       ref: "User",
       type: mongoose.Types.ObjectId,
     },
+    name: {
+      type: String,
+    },
     balance: {
       type: Number,
       default: 0,
     },
   },
-  { timestamps: true }
+  { timestamps:true }
 );
 
 const validateBill = (bill) => {
@@ -46,9 +49,11 @@ const validateBill = (bill) => {
         })
       )
       .required(),
+    customer: Joi.objectId(),
     amount: Joi.number().min(1),
     type: Joi.string().valid("credit", "cash").required(),
     balance: Joi.number().min(0),
+    name: Joi.string(),
   });
   return schema.validate(bill);
 };

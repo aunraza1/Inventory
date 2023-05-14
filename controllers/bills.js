@@ -1,12 +1,32 @@
-const { validateBill } = require("../models/bill");
+const { validateBill, Billschema } = require("../models/bill");
 const { Product } = require("../models/product");
+const { User } = require("../models/user");
 
 const createBill = async (req, res) => {
   try {
     const { body } = req;
     const { error } = validateBill(body);
+    let user;
     if (error) {
       return res.status(400).send({ message: error?.details[0]?.message });
+    }
+    if (body?.type === "cash") {
+      if (!body.name) {
+        return res
+          .status(400)
+          .send({ message: "Name is required for bill creation" });
+      }
+    }
+    if (body.type === "credit") {
+      if (!body.customer) {
+        return res.status(400).send({ message: "Customer is required" });
+      }
+      user = await User.findOne({ _id: body.customer });
+      if (user.role !== "customer") {
+        return res
+          .status(403)
+          .send({ message: "You are not allowed to perform this request" });
+      }
     }
     let errorObj = {};
     let totalAmount = 0;
@@ -44,10 +64,26 @@ const createBill = async (req, res) => {
           }
         })
       );
-      return res.status(200).send({
+      let billObj = {
+        type: body?.type,
         products: productsToReturn,
         amount: totalAmount,
+      };
+      if (body.type == "cash") {
+        billObj.name = body.name;
+      }
+      if (body.type === "credit") {
+        billObj.customer = body.customer;
+      }
+      const bill = new Billschema(billObj);
+      await bill.save();
+      return res.status(200).send({
+        ...billObj,
+        name: billObj?.name
+          ? billObj?.name
+          : user?.firstName + " " + user?.lastName,
         message: "Bill Created Successfully",
+        date: new Date().toISOString(),
       });
     }
     return res.status(400).send({
@@ -56,7 +92,6 @@ const createBill = async (req, res) => {
       } is low in Quantity Availble Quantity ${errorObj?.quantity}`,
     });
   } catch (e) {
-    console.log("E", e);
     return res.status(500).send({ message: "Something Went Wrong", e });
   }
 };
